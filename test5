@@ -1,0 +1,56 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Dec  7 17:35:31 2018
+
+@author: l81024549
+"""
+import csv
+import sys
+import gensim
+import sklearn
+import numpy as np
+import re
+ 
+from gensim.models.doc2vec import Doc2Vec, LabeledSentence
+
+TaggededDocument = gensim.models.doc2vec.TaggedDocument
+
+path = "C:\\Users\\l81024549\\Downloads\\trainingandtestdata\\training.1600000.processed.noemoticon.csv"
+modlepath = "C:\\Users\\l81024549\\Downloads\\trainingandtestdata\\mo.d2v"
+#c = "@nikon212 afternoon to you from London. How is NY today? It is lovely and sunny here but I'm at work "
+i = 0
+j = 0    
+def getdata():  
+    global i,j
+    with open(path, 'r', encoding='utf-8') as csvFile:
+        reader = csv.reader(csvFile)
+        for item in reader:
+            c = item[5]
+            lab = item[0]
+            cre = re.sub("@[^ ]+","",c)
+            cre = re.sub("(http|https|ftp)://([^ ])+","",cre)
+            cre = re.sub("#[^ ]+","",cre)
+            cre = cre.strip()        
+            print(cre)
+            tmp = 0
+            if(lab == "0"):
+                    #print(lab)
+                tmp = i
+                i = i+1     
+            elif(lab == "4"):
+                    #print(lab)
+                tmp = j
+                j = j+1
+            print(lab + '_%s' % tmp)
+            yield gensim.models.doc2vec.TaggedDocument(gensim.utils.to_unicode(cre).split(), [lab + '_%s' % tmp])
+  
+model = gensim.models.doc2vec.Doc2Vec(vector_size=20, min_count=1, epochs=50, workers=7)
+data = list(getdata())
+model.build_vocab(data)
+for epoch in range(1):
+    model.train(data, total_examples=model.corpus_count, epochs=model.iter)    
+    
+model.save(modlepath)
+print(i)    
+print(j)
+
