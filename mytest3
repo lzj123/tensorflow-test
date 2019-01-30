@@ -1,0 +1,132 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sat Dec 29 09:38:41 2018
+
+@author: l81024549
+"""
+import re
+import csv
+import numpy as np
+import tensorflow as tf
+import gensim
+from gensim.models.doc2vec import Doc2Vec, LabeledSentence
+
+TaggededDocument = gensim.models.doc2vec.TaggedDocument
+
+def add_layer(inputs,in_size,out_size,activation_function=None):
+    w = tf.Variable(tf.random_normal([in_size,out_size]))
+    b = tf.Variable(tf.random_normal([1,out_size]))
+    #W = tf.Variable(np.random.randn(node_in, node_out))
+    #w = tf.Variable(tf.zeros([in_size,out_size]))
+    #b = tf.Variable(tf.zeros([1,out_size]))
+    f = tf.matmul(inputs,w) + b
+    if activation_function is None:
+        outputs = f
+    else:
+        outputs = activation_function(f)
+    return outputs
+
+number0 = 799648
+number4 = 799523
+modelpath = "C:\\Users\\l81024549\\Downloads\\trainingandtestdata\\mo.d2v"
+testpath = "C:\\Users\\l81024549\\Downloads\\trainingandtestdata\\testdata.manual.2009.06.14.csv"
+
+model = Doc2Vec.load(modelpath)
+'''
+cre = "House Correspondents dinner was last night whoopi, barbara &amp; sherri went, Obama got a standing ovation"
+text = gensim.utils.to_unicode(cre).split()
+a = model.infer_vector(text)
+tmp = 2333
+b = model.docvecs["4"+'_%s' % tmp]
+print(a)
+print(b)
+'''
+local0 = 0
+local4 = 0
+index0 = range(number0)
+index4 = range(number4)
+def get_train_batch():
+    traindata = np.zeros([100,20],dtype = np.float)
+    trainlab = np.zeros([100,3],dtype = np.int)
+    count = 0
+    global local0,local4,index0,index4,model
+    size0 = np.random.randint(0,100)
+    size4 = 100 - size0
+    if(local0 + size0 > number0):
+        np.random.shuffle(index0)
+        local0 = 0
+    if(local4 + size4 > number4):
+        np.random.shuffle(index4)
+        local4 = 0
+    end0 = local0 + size0
+    end4 = local4 + size4
+    temp0 = index0[local0:end0]
+    temp4 = index4[local4:end4]
+    for i in temp0:
+        a = model.docvecs["0"+'_%s' % i]
+        traindata[count] = a
+        trainlab[count] = dict[0]
+    for k in temp4:
+        a = model.docvecs["0"+'_%s' % k]
+        traindata[count] = a
+        trainlab[count] = dict[2]
+    local0 = end0
+    local4 = end4
+    return traindata,trainlab
+i = 0
+dict = {0:[1,0,0],2:[0,1,0],4:[0,0,1]}
+testdata = np.zeros([498,20],dtype = np.float)
+testlab = np.zeros([498,3],dtype = np.int)
+with open(testpath, 'r', encoding='utf-8') as csvFile:
+        reader = csv.reader(csvFile)
+        for item in reader:
+            cre = item[5]
+            cre = re.sub("@[^ ]+","",cre)
+            cre = re.sub("(http|https|ftp)://([^ ])+","",cre)
+            cre = re.sub("#[^ ]+","",cre)
+            cre = cre.strip() 
+            text = gensim.utils.to_unicode(cre).split()
+            a = model.infer_vector(text)
+            testdata[i] = a
+            la = item[0]
+            testlab[i] = dict[int(la)]
+            i = i+1
+            
+filesize = 20            
+sess=tf.InteractiveSession()
+x = tf.placeholder("float", shape=[None, filesize])
+y_ = tf.placeholder("float", shape=[None, 3])
+length = 10
+
+for layer in range(1):
+    if(layer == 0):
+        y = add_layer(x,filesize,length,activation_function = tf.nn.sigmoid)
+    else:
+        y = add_layer(y,length,length,activation_function = tf.nn.sigmoid)
+y = add_layer(y,length,3,activation_function = tf.nn.softmax)
+cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ *tf.log(y), reduction_indices=[1]))
+regularizer = tf.contrib.layers.l2_regularizer(0.001, scope=None)
+regulazation = tf.contrib.layers.apply_regularization(regularizer, tf.trainable_variables())
+cross_entropy = cross_entropy + regulazation
+train_step = tf.train.GradientDescentOptimizer(0.05).minimize(cross_entropy)
+#train_step = tf.train.AdamOptimizer(0.05).minimize(cross_entropy)
+init = tf.initialize_all_variables()
+#init = tf.global_variables_initializer()
+sess.run(init)
+correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1))
+accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float")) 
+
+for i in range(1000):
+    batch = get_train_batch()
+    #print(batch)
+    #print(sess.run(y,feed_dict={x:batch[0],keep_prob:1.0}))
+    train_step.run(feed_dict={x: batch[0], y_: batch[1]})
+    if(i%500 == 0):
+        print(sess.run(accuracy, feed_dict={x: testdata, y_: testlab}))
+        #print(sess.run(y,feed_dict={x:testimages}))
+print("finish train")
+ 
+
+#print(sess.run(y,feed_dict={x:testimages}))
+print(sess.run(accuracy, feed_dict={x: testdata, y_: testlab}))           
+            
