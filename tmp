@@ -1,0 +1,133 @@
+
+
+from PIL import Image
+import glob as gb
+import numpy as np
+import tensorflow as tf
+
+#file_path = 'D:\\deepl\\test_Bh8pGW3\\Test\\*.jpg'
+file_path = 'D:\\deepl\\new\\train_DETg9GD\\Train\\*.jpg'
+img_path = gb.glob(file_path)
+for path in img_path:
+    im = Image.open(path)
+    im = im.resize((128,128),Image.ANTIALIAS)
+    im = im.convert("L")
+    im.save(path)
+
+'''
+list = []
+list.append("asd")
+list.append("qwe")
+list.append("sd")
+list.append("xc")
+list.append("frg")
+list.append("tyujn")
+list.append("adfgsd")
+list.append("nmk")
+def get():
+    a = list[0:2]
+    b = list[3:5]
+    return a,b
+batch = get()
+print(batch[0])
+print(batch[1])
+print(list)
+np.random.shuffle(list)
+print(list)
+s = "asd %s"
+s2 = "wer"
+print(s%s2)    
+'''
+#x = tf.constant([0.1,0.1,0.8])
+#sess=tf.InteractiveSession()
+#print(sess.run(tf.argmax(x)))
+#sess.close()
+#imdata = np.zeros((3000, 3072), dtype=np.float64)
+#a = np.random.randint(0,45)]
+'''
+def rebuild(imagedata):
+    lens = len(imagedata)
+    for i in range(lens):
+        s = imagedata[i]
+        s = np.reshape(s,(2,2))
+        s[0] = (s[0] - np.min(s[0]))/(np.max(s[0])-np.min(s[0]))
+        s[1] = (s[1] - np.min(s[1]))/(np.max(s[1])-np.min(s[1]))
+        s = s.flatten()
+        imagedata[i] = s
+    return imagedata
+a = np.zeros((3,4),dtype = np.int)
+a[0] = [1,2,3,4]
+a[1] = [5,6,7,8]
+a[2] = [9,10,11,12]
+#print(a)
+'''
+'''
+b = [1,2,3]
+b = np.array(b)
+#print(b)
+'''
+'''
+index = [i for i in range(len(a))]
+np.random.shuffle(index)
+a = a[index]
+b = b[index]
+'''
+'''
+a = rebuild(a)
+print(a)
+'''
+from PIL import Image
+import glob as gb
+import numpy as np
+import tensorflow as tf
+import pickle
+'''
+path = "D:\\deepl\\train_DETg9GD\\Train\\575.jpg"
+im = Image.open(path)
+g = im.split()
+g_arr = np.array(im)
+print(g_arr)
+'''
+
+'''
+r,g,b = im.split()
+r_arr = np.array(r)
+g_arr = np.array(g)
+b_arr = np.array(b)
+r_max = np.max(r_arr)
+r_min = np.min(r_arr)
+r_arr_re = (r_arr - r_min)/(r_max-r_min)
+g_max = np.max(g_arr)
+g_min = np.min(g_arr)
+g_arr_re = (g_arr - g_min)/(g_max-g_min)
+b_max = np.max(b_arr)
+b_min = np.min(b_arr)
+b_arr_re = (b_arr - b_min)/(b_max-b_min)
+r_arr_re = r_arr_re.flatten()
+g_arr_re = g_arr_re.flatten()
+b_arr_re = b_arr_re.flatten()
+#np.concatenate()
+#print(r_arr_re)
+#print(g_arr_re)
+#print(b_arr_re)
+
+im_arr = np.concatenate((r_arr_re,g_arr_re,b_arr_re))
+print(im_arr)
+#print(im)
+'''
+#dict = {0:[1,0,0],2:[0,1,0],4:[0,0,1]}
+#print(dict[int("2")])
+def unpickle(file):    
+    with open(file, 'rb') as fo:
+        dict = pickle.load(fo, encoding='bytes')
+    return dict
+file1 = 'D:\\deepl\\cifar-10-batches-py\\data_batch_1'
+batch1 = unpickle(file1)
+batch1im = batch1.get(b'data')
+batch1la = batch1.get(b'labels')
+im1 = batch1im[0]
+im = np.reshape(im1,[32,32,3])
+
+im = Image.fromarray(im)
+im = im.resize((256,256),Image.ANTIALIAS)
+im.show()
