@@ -1,0 +1,269 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Jan 15 15:56:50 2019
+
+@author: l81024549
+"""
+
+import pickle
+import numpy as np
+import tensorflow as tf
+
+savepath = "D:\\deepl\\model"
+filesize = 256*3
+onechannel = 256
+def unpickle(file):    
+    with open(file, 'rb') as fo:
+        dict = pickle.load(fo, encoding='bytes')
+    return dict
+
+def add_layer(inputs,in_size,out_size,activation_function=None,bn = 0,add_part = None):
+    w = tf.Variable(tf.random_normal([in_size,out_size],stddev = 0.01))
+    b = tf.Variable(tf.random_normal([1,out_size]))
+    
+    if(bn == 1):
+        f = tf.matmul(inputs,w)# + b
+        if add_part is not None:
+            f = f + add_part
+            print("aaa")
+        mean, var = tf.nn.moments(f,[0])
+        scale = tf.Variable(tf.ones([out_size]))
+        beta = tf.Variable(tf.zeros([out_size]))
+        epsilon = 0.001
+        f = tf.nn.batch_normalization(f,mean,var,beta,scale,epsilon)
+    elif(bn == 0):
+        f = tf.matmul(inputs,w) + b
+        if add_part is not None:
+            f = f + add_part
+    if activation_function is None:
+        outputs = f
+    else:
+        outputs = activation_function(f)  
+    return outputs
+def rebuild(imagedata):
+    lens = len(imagedata)
+    retu = np.zeros((lens,filesize),dtype = np.float64)
+    for i in range(lens):
+        s = imagedata[i]
+        s = np.reshape(s,(3,onechannel))
+        s2 = np.zeros((3,onechannel),dtype = np.float64)
+        #print(s)
+        tmp = np.zeros((1,onechannel),dtype = np.float64)
+        tmp = (s[0]/255.0)#(s[0] - np.min(s[0]))/(np.max(s[0])-np.min(s[0]))
+        s2[0] = tmp
+        tmp = s[1]/255.0#(s[1] - np.min(s[1]))/(np.max(s[1])-np.min(s[1]))
+        s2[1] = tmp
+        tmp = s[2]/255.0#(s[2] - np.min(s[2]))/(np.max(s[2])-np.min(s[2]))
+        s2[2] = tmp
+        s2 = s2.flatten()
+        retu[i] = s2
+    return retu
+file1 = 'D:\\deepl\\Imagenet16_train\\train_data_batch_1'
+file2 = 'D:\\deepl\\Imagenet16_train\\train_data_batch_2'
+file3 = 'D:\\deepl\\Imagenet16_train\\train_data_batch_3'
+file4 = 'D:\\deepl\\Imagenet16_train\\train_data_batch_4'
+file5 = 'D:\\deepl\\Imagenet16_train\\train_data_batch_5'
+file6 = 'D:\\deepl\\Imagenet16_train\\train_data_batch_6'
+file7 = 'D:\\deepl\\Imagenet16_train\\train_data_batch_7'
+file8 = 'D:\\deepl\\Imagenet16_train\\train_data_batch_8'
+file9 = 'D:\\deepl\\Imagenet16_train\\train_data_batch_9'
+file10 = 'D:\\deepl\\Imagenet16_train\\train_data_batch_10'
+testfile = 'D:\\deepl\\Imagenet16_val\\val_data'
+
+
+
+batch1 = unpickle(file1)
+batch1im = batch1.get('data')
+batch1la = batch1.get('labels')
+images = batch1im
+labels = batch1la
+
+batch1 = unpickle(file2)
+batch1im = batch1.get('data')
+batch1la = batch1.get('labels')
+images = np.vstack((images,batch1im))
+labels = np.hstack((labels,batch1la))
+
+batch1 = unpickle(file3)
+batch1im = batch1.get('data')
+batch1la = batch1.get('labels')
+images = np.vstack((images,batch1im))
+labels = np.hstack((labels,batch1la))
+
+batch1 = unpickle(file4)
+batch1im = batch1.get('data')
+batch1la = batch1.get('labels')
+images = np.vstack((images,batch1im))
+labels = np.hstack((labels,batch1la))
+
+batch1 = unpickle(file5)
+batch1im = batch1.get('data')
+batch1la = batch1.get('labels')
+images = np.vstack((images,batch1im))
+labels = np.hstack((labels,batch1la))
+
+batch1 = unpickle(file6)
+batch1im = batch1.get('data')
+batch1la = batch1.get('labels')
+images = np.vstack((images,batch1im))
+labels = np.hstack((labels,batch1la))
+
+batch1 = unpickle(file7)
+batch1im = batch1.get('data')
+batch1la = batch1.get('labels')
+images = np.vstack((images,batch1im))
+labels = np.hstack((labels,batch1la))
+
+batch1 = unpickle(file8)
+batch1im = batch1.get('data')
+batch1la = batch1.get('labels')
+images = np.vstack((images,batch1im))
+labels = np.hstack((labels,batch1la))
+
+batch1 = unpickle(file9)
+batch1im = batch1.get('data')
+batch1la = batch1.get('labels')
+images = np.vstack((images,batch1im))
+labels = np.hstack((labels,batch1la))
+
+batch1 = unpickle(file10)
+batch1im = batch1.get('data')
+batch1la = batch1.get('labels')
+images = np.vstack((images,batch1im))
+labels = np.hstack((labels,batch1la))
+
+'''
+batch2 = unpickle(file2)
+batch2im = batch2.get('data')
+batch2la = batch2.get('labels')
+
+batch3 = unpickle(file3)
+batch3im = batch3.get('data')
+batch3la = batch3.get('labels')
+
+batch4 = unpickle(file4)
+batch4im = batch4.get('data')
+batch4la = batch4.get('labels')
+
+batch5 = unpickle(file5)
+batch5im = batch5.get('data')
+batch5la = batch5.get('labels')
+
+batch6 = unpickle(file6)
+batch6im = batch6.get('data')
+batch6la = batch6.get('labels')
+
+batch7 = unpickle(file7)
+batch7im = batch7.get('data')
+batch7la = batch7.get('labels')
+
+batch8 = unpickle(file8)
+batch8im = batch8.get('data')
+batch8la = batch8.get('labels')
+
+batch9 = unpickle(file9)
+batch9im = batch9.get('data')
+batch9la = batch9.get('labels')
+
+batch10 = unpickle(file10)
+batch10im = batch10.get('data')
+batch10la = batch10.get('labels')
+
+
+
+
+
+images = np.vstack((batch1im,batch2im,batch3im,batch4im,batch5im,batch6im,batch7im,batch8im,batch9im,batch10im))
+labels = np.hstack((batch1la,batch2la,batch3la,batch4la,batch5la,batch6la,batch7la,batch8la,batch9la,batch10la))
+
+'''
+
+
+labels = np.array(labels)
+testbatch = unpickle(testfile)
+testimages = testbatch.get('data')
+tmptestlabels = testbatch.get('labels')
+
+k = 0
+testlabels = np.zeros((50000,1000),dtype = np.int32)
+for i in tmptestlabels:
+    testlabels[k][i-1] = 1
+    k=k+1
+start = 0
+size = 100
+
+def get_train_batch():
+    global start
+    global images
+    global labels
+    global size
+    if(start+size>len(images)):
+        index = [i for i in range(len(labels))]
+        np.random.shuffle(index)
+        images = images[index]
+        labels = labels[index]
+        start = 0
+    end = start+size
+    imagesdata = images[start:end]
+    tmplabels = labels[start:end]
+    labelsdata = np.zeros((size,1000),dtype = np.int32)
+    k=0
+    for i in tmplabels:
+        labelsdata[k][i-1] = 1
+        k=k+1
+    start = end
+    imagesdata = rebuild(imagesdata)
+    return imagesdata,labelsdata
+sess=tf.InteractiveSession()
+x = tf.placeholder("float", shape=[None, filesize])
+y_ = tf.placeholder("float", shape=[None, 1000])
+
+length = 1500
+
+for layer in range(1):
+    if(layer == 0):
+        y = add_layer(x,filesize,length,activation_function = tf.nn.relu,bn = 1)
+    else:
+        y = add_layer(y,length,length,activation_function = tf.nn.relu,bn = 1)
+y = add_layer(y,length,1000,activation_function = tf.nn.softmax,bn = 1)
+
+'''
+y = add_layer(x,filesize,length,activation_function = tf.nn.relu,bn = 1)
+for layer in range(2):
+    tmp = add_layer(y,length,length,activation_function = tf.nn.relu,bn = 1,add_part = None)
+    tmp = add_layer(tmp,length,length,activation_function = tf.nn.relu,bn = 1,add_part = None)
+    y = add_layer(tmp,length,length,activation_function = tf.nn.relu,bn = 1,add_part = y)
+y = add_layer(y,length,1000,activation_function = tf.nn.softmax,bn = 1,add_part = None)
+'''
+
+cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ *tf.log(tf.clip_by_value(y,1e-10,1.0)), reduction_indices=[1]))
+#regularizer = tf.contrib.layers.l2_regularizer(0.01, scope=None)
+#regulazation = tf.contrib.layers.apply_regularization(regularizer, tf.trainable_variables())
+#cross_entropy = cross_entropy + regulazation
+train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)
+#train_step = tf.train.AdamOptimizer(0.05).minimize(cross_entropy)
+init = tf.initialize_all_variables()
+#init = tf.global_variables_initializer()
+sess.run(init) 
+correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1))
+accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float")) 
+
+for i in range(200000):
+    batch = get_train_batch()
+    train_step.run(feed_dict={x: batch[0], y_: batch[1]})
+    if(i%500 == 0):
+        print(i)
+        print(sess.run(accuracy, feed_dict={x: testimages, y_: testlabels}))
+        print(sess.run(cross_entropy, feed_dict={x: testimages, y_: testlabels}))
+        #print(sess.run(y, feed_dict={x: batch[0], y_: batch[1]}))
+print("finish train")
+ 
+
+
+print(sess.run(accuracy, feed_dict={x: testimages, y_: testlabels}))   
+
+sess.close()  
+
+
+
+
