@@ -1,0 +1,295 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Jan 10 13:48:16 2019
+
+@author: l81024549
+"""
+
+import pickle
+import numpy as np
+import tensorflow as tf
+def unpickle(file):    
+    with open(file, 'rb') as fo:
+        dict = pickle.load(fo, encoding='bytes')
+    return dict
+def rebuild(imagedata):
+    '''
+    lens = len(imagedata)
+    retu = np.zeros((lens,192),dtype = np.float64)
+    for i in range(lens):
+        s = imagedata[i]
+        s = np.reshape(s,(3,64))
+        s2 = np.zeros((3,64),dtype = np.float64)
+        #print(s)
+        tmp = np.zeros((1,64),dtype = np.float64)
+        tmp = (s[0]/255.0)#(s[0] - np.min(s[0]))/(np.max(s[0])-np.min(s[0]))
+        s2[0] = tmp
+        tmp = s[1]/255.0#(s[1] - np.min(s[1]))/(np.max(s[1])-np.min(s[1]))
+        s2[1] = tmp
+        tmp = s[2]/255.0#(s[2] - np.min(s[2]))/(np.max(s[2])-np.min(s[2]))
+        s2[2] = tmp
+        s2 = s2.flatten()
+        retu[i] = s2
+        '''
+    imagedata = imagedata/255.0
+    return imagedata
+def weight_variable(shape):
+		# 正态分布，标准差为0.1，默认最大为1，最小为-1，均值为0
+    	initial = tf.truncated_normal(shape, stddev=0.1)
+    	return tf.Variable(initial)
+def bias_variable(shape):
+		# 创建一个结构为shape矩阵也可以说是数组shape声明其行列，初始化所有值为0.1
+    	initial = tf.constant(0.1, shape=shape)
+    	return tf.Variable(initial)
+def conv2d(x, W):  
+		# 卷积遍历各方向步数为1，SAME：边缘外自动补0，遍历相乘
+  	return tf.nn.conv2d(x, W, strides=[1, 1, 1, 1], padding='SAME')  
+def max_pool_2x2(x):  
+		# 池化卷积结果（conv2d）池化层采用kernel大小为2*2，步数也为2，周围补0，取最大值。数据量缩小了4倍
+  	return tf.nn.max_pool(x, ksize=[1, 2, 2, 1],strides=[1, 2, 2, 1], padding='SAME')  
+filesize = 3072
+dict = {0:[1,0,0,0,0,0,0,0,0,0],1:[0,1,0,0,0,0,0,0,0,0],2:[0,0,1,0,0,0,0,0,0,0]}
+dict[3] = [0,0,0,1,0,0,0,0,0,0]
+dict[4] = [0,0,0,0,1,0,0,0,0,0]
+dict[5] = [0,0,0,0,0,1,0,0,0,0]
+dict[6] = [0,0,0,0,0,0,1,0,0,0]
+dict[7] = [0,0,0,0,0,0,0,1,0,0]
+dict[8] = [0,0,0,0,0,0,0,0,1,0]
+dict[9] = [0,0,0,0,0,0,0,0,0,1]
+file1 = 'D:\\deepl\\Imagenet8_train\\train_data_batch_1'
+file2 = 'D:\\deepl\\Imagenet8_train\\train_data_batch_2'
+file3 = 'D:\\deepl\\Imagenet8_train\\train_data_batch_3'
+file4 = 'D:\\deepl\\Imagenet8_train\\train_data_batch_4'
+file5 = 'D:\\deepl\\Imagenet8_train\\train_data_batch_5'
+file6 = 'D:\\deepl\\Imagenet8_train\\train_data_batch_6'
+file7 = 'D:\\deepl\\Imagenet8_train\\train_data_batch_7'
+file8 = 'D:\\deepl\\Imagenet8_train\\train_data_batch_8'
+file9 = 'D:\\deepl\\Imagenet8_train\\train_data_batch_9'
+file10 = 'D:\\deepl\\Imagenet8_train\\train_data_batch_10'
+testfile = 'D:\\deepl\\Imagenet8_val\\val_data'
+
+
+batch1 = unpickle(file1)
+batch1im = batch1.get('data')
+batch1la = batch1.get('labels')
+images = batch1im
+labels = batch1la
+
+batch1 = unpickle(file2)
+batch1im = batch1.get('data')
+batch1la = batch1.get('labels')
+images = np.vstack((images,batch1im))
+labels = np.hstack((labels,batch1la))
+
+batch1 = unpickle(file3)
+batch1im = batch1.get('data')
+batch1la = batch1.get('labels')
+images = np.vstack((images,batch1im))
+labels = np.hstack((labels,batch1la))
+
+batch1 = unpickle(file4)
+batch1im = batch1.get('data')
+batch1la = batch1.get('labels')
+images = np.vstack((images,batch1im))
+labels = np.hstack((labels,batch1la))
+
+batch1 = unpickle(file5)
+batch1im = batch1.get('data')
+batch1la = batch1.get('labels')
+images = np.vstack((images,batch1im))
+labels = np.hstack((labels,batch1la))
+
+batch1 = unpickle(file6)
+batch1im = batch1.get('data')
+batch1la = batch1.get('labels')
+images = np.vstack((images,batch1im))
+labels = np.hstack((labels,batch1la))
+
+batch1 = unpickle(file7)
+batch1im = batch1.get('data')
+batch1la = batch1.get('labels')
+images = np.vstack((images,batch1im))
+labels = np.hstack((labels,batch1la))
+
+batch1 = unpickle(file8)
+batch1im = batch1.get('data')
+batch1la = batch1.get('labels')
+images = np.vstack((images,batch1im))
+labels = np.hstack((labels,batch1la))
+
+batch1 = unpickle(file9)
+batch1im = batch1.get('data')
+batch1la = batch1.get('labels')
+images = np.vstack((images,batch1im))
+labels = np.hstack((labels,batch1la))
+
+batch1 = unpickle(file10)
+batch1im = batch1.get('data')
+batch1la = batch1.get('labels')
+images = np.vstack((images,batch1im))
+labels = np.hstack((labels,batch1la))
+
+sess = tf.InteractiveSession()
+
+labels = np.array(labels)
+
+testbatch = unpickle(testfile)
+testimages = testbatch.get('data')
+testimages = rebuild(testimages)
+tmptestlabels = testbatch.get('labels')
+k = 0
+testlabels = np.zeros((50000,1000),dtype = np.int32)
+for i in tmptestlabels:
+    testlabels[k][i-1] = 1
+    k=k+1
+
+start = 0
+size = 128
+
+indexmain = [i for i in range(len(labels))]
+np.random.shuffle(indexmain)
+images = images[indexmain]
+labels = labels[indexmain]
+def get_train_batch():
+    global start
+    global images
+    global labels
+    if(start+size>len(images)):
+        index = [i for i in range(len(labels))]
+        np.random.shuffle(index)
+        images = images[index]
+        labels = labels[index]
+        start = 0
+    end = start+size
+    imagesdata = images[start:end]
+    tmplabels = labels[start:end]
+    labelsdata = np.zeros((size,1000),dtype = np.int32)
+    k=0
+    for i in tmplabels:
+        labelsdata[k][i-1] = 1
+        k=k+1
+    start = end
+    imagesdata = rebuild(imagesdata)
+    return imagesdata,labelsdata
+
+xs = tf.placeholder(tf.float32, [None, 8*8*3]) 
+	
+ys = tf.placeholder(tf.float32, [None, 1000]) 
+
+x_image = tf.reshape(xs, [-1, 8, 8, 3]) 
+ 
+ 
+W_conv1 = weight_variable([2, 2, 3, 64])
+	
+b_conv1 = bias_variable([64])  
+
+#h_conv1 = tf.nn.tanh(conv2d(x_image, W_conv1) + b_conv1)  
+
+h_conv1_1 = conv2d(x_image, W_conv1) + b_conv1
+mean1,var1 = tf.nn.moments(h_conv1_1,[0,1,2])
+scale1 = tf.Variable(tf.ones([64]))
+beta1 = tf.Variable(tf.zeros([64]))
+epsilon1 = 0.001
+h_bn1 = tf.nn.batch_normalization(h_conv1_1,mean1,var1,beta1,scale1,epsilon1)
+h_conv1 = tf.nn.tanh(h_bn1)
+	
+#h_pool1 = max_pool_2x2(h_conv1) 
+ 
+   
+w_conv2 = weight_variable([2,2,64,128]) 
+	
+b_conv2  = bias_variable([128]) 
+	
+#h_conv2 = tf.nn.tanh(conv2d(h_conv1,w_conv2)+b_conv2)  
+	# 池化结果7x7x64
+#h_pool2 = max_pool_2x2(h_conv2)  
+
+h_conv2_1 = conv2d(h_conv1, w_conv2) + b_conv2
+mean2,var2 = tf.nn.moments(h_conv2_1,[0,1,2])
+scale2 = tf.Variable(tf.ones([128]))
+beta2 = tf.Variable(tf.zeros([128]))
+epsilon2 = 0.001
+h_bn2 = tf.nn.batch_normalization(h_conv2_1,mean2,var2,beta2,scale2,epsilon2)
+h_conv2 = tf.nn.tanh(h_bn2)
+    
+w_conv3 = weight_variable([2,2,128,256]) 
+	
+b_conv3  = bias_variable([256]) 
+	
+#h_conv3 = tf.nn.tanh(conv2d(h_conv2,w_conv3)+b_conv3)
+
+h_conv3_1 = conv2d(h_conv2, w_conv3) + b_conv3
+mean3,var3 = tf.nn.moments(h_conv3_1,[0,1,2])
+scale3 = tf.Variable(tf.ones([256]))
+beta3 = tf.Variable(tf.zeros([256]))
+epsilon3 = 0.001
+h_bn3 = tf.nn.batch_normalization(h_conv3_1,mean3,var3,beta3,scale3,epsilon3)
+h_conv3 = tf.nn.tanh(h_bn3)
+	
+W_fc1 = weight_variable([8*8*256, 256]) 
+	
+b_fc1 = bias_variable([256]) 
+	
+h_pool2_flat = tf.reshape(h_conv3, [-1, 8*8*256]) 
+	
+#h_fc1 = tf.nn.tanh(tf.matmul(h_pool2_flat, W_fc1) + b_fc1) 
+h_fc1_1 = tf.matmul(h_pool2_flat, W_fc1) + b_fc1
+meanfc1,varfc1 = tf.nn.moments(h_fc1_1,[0])
+scalefc1 = tf.Variable(tf.ones([256]))
+betafc1 = tf.Variable(tf.zeros([256]))
+epsilonfc1 = 0.001
+h_fc1 = tf.nn.tanh(tf.nn.batch_normalization(h_fc1_1,meanfc1,varfc1,betafc1,scalefc1,epsilonfc1))
+
+W_fc2 = weight_variable([256, 1000])  
+b_fc2 = bias_variable([1000])  
+
+h_fc2_1 = tf.matmul(h_fc1, W_fc2) + b_fc2
+meanfc2,varfc2 = tf.nn.moments(h_fc2_1,[0])
+scalefc2 = tf.Variable(tf.ones([1000]))
+betafc2 = tf.Variable(tf.zeros([1000]))
+epsilonfc2 = 0.001
+y_conv = tf.nn.softmax(tf.nn.batch_normalization(h_fc2_1,meanfc2,varfc2,betafc2,scalefc2,epsilonfc2))
+	
+#y_conv=tf.nn.softmax(tf.matmul(h_fc1, W_fc2) + b_fc2) 
+ 
+
+cross_entropy = tf.reduce_mean(-tf.reduce_sum(ys *tf.log(tf.clip_by_value(y_conv,1e-8,1.0)), reduction_indices=[1])) # 定义交叉熵为loss函数  
+'''
+regularizer = tf.contrib.layers.l2_regularizer(0.01, scope=None)
+regulazation = tf.contrib.layers.apply_regularization(regularizer, tf.trainable_variables())
+cross_entropy = cross_entropy + regulazation
+'''
+train_step = tf.train.GradientDescentOptimizer(0.1).minimize(cross_entropy)
+
+correct_prediction = tf.equal(tf.argmax(y_conv,1), tf.argmax(ys,1))
+accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
+init = tf.global_variables_initializer()
+sess.run(init)
+for i in range(200000):
+    batch = get_train_batch()
+    
+    #print(sess.run(x_image,feed_dict={xs:batch[0]}))
+    #print(sess.run(h_pool2,feed_dict={xs: batch[0], ys: batch[1]}))
+    train_step.run(feed_dict={xs: batch[0], ys: batch[1]})
+    if(i%500 == 0):
+        sumtmp = 0
+        for k in range(500):
+            tmp = sess.run(accuracy,feed_dict={xs: testimages[k*100:k*100+100,:], ys: testlabels[k*100:k*100+100,:]})
+            sumtmp = sumtmp+tmp
+        print(i)
+        print(sumtmp/100)
+        print(sess.run(y_conv,feed_dict={xs: batch[0], ys: batch[1]}))
+        #print(sess.run(h_conv1,feed_dict={xs: batch[0], ys: batch[1]}))
+        #print(sess.run(h_conv2,feed_dict={xs: batch[0], ys: batch[1]}))
+        #print(sess.run(h_conv3,feed_dict={xs: batch[0], ys: batch[1]}))
+        print(sess.run(h_pool2_flat,feed_dict={xs: batch[0], ys: batch[1]}))
+        
+
+print("finish train")
+
+sum = 0
+for k in range(500):
+    tmp = sess.run(accuracy,feed_dict={xs: testimages[k*100:k*100+100,:], ys: testlabels[k*100:k*100+100,:]})
+    sum = sum+tmp
+print(sum/100)
+sess.close()
