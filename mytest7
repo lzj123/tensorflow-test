@@ -1,0 +1,217 @@
+import csv
+from PIL import Image
+import numpy as np
+import tensorflow as tf
+
+path = "D:\\deepl\\new\\train_DETg9GD\\train.csv"
+rootpath = "D:\\deepl\\new\\train_DETg9GD\\Train\\"
+REGULARAZTION_RATE = 0.01
+csvFile = open(path, "r")
+reader = csv.reader(csvFile)
+dict = {0:[1,0,0],1:[0,1,0],2:[0,0,1]}
+filesize = 16384
+# 建立空字典
+result = {}
+for item in reader:
+    if reader.line_num == 1:
+        continue
+    result[item[0]] = item[1]
+csvFile.close()
+imnumber = []
+im_index = 0
+testnumber = []
+test_index = 0
+trainnum = 0
+youn = 0
+mid = 0
+old = 0
+for key in result:
+    if(trainnum < 14500):
+        imnumber.append(key)
+    else:
+        testnumber.append(key)
+    trainnum = trainnum+1
+def add_layer(inputs,in_size,out_size,activation_function=None,bn = 0,add_part = None):
+    w = tf.Variable(tf.random_normal([in_size,out_size],stddev = 0.01))
+    b = tf.Variable(tf.random_normal([1,out_size]))
+    
+    if(bn == 1):
+        f = tf.matmul(inputs,w)# + b
+        if add_part is not None:
+            f = f + add_part
+            print("aaa")
+        mean, var = tf.nn.moments(f,[0])
+        scale = tf.Variable(tf.ones([out_size]))
+        beta = tf.Variable(tf.zeros([out_size]))
+        epsilon = 0.001
+        f = tf.nn.batch_normalization(f,mean,var,beta,scale,epsilon)
+    elif(bn == 0):
+        f = tf.matmul(inputs,w) + b
+        if add_part is not None:
+            f = f + add_part
+    if activation_function is None:
+        outputs = f
+    else:
+        outputs = activation_function(f)  
+    return outputs
+def get_train_batch():
+    global im_index
+    size = 1000
+    imdata = np.zeros((size, filesize), dtype=np.float64)
+    imlab = np.zeros((size, 3), dtype=np.float32)
+    start = im_index
+    end = start + size
+    if(end > len(imnumber)):
+        np.random.shuffle(imnumber)
+        start = 0
+        end = start + size
+    tmp = imnumber[start:end]
+    k = 0
+    im_index = end
+    for s in tmp:
+        impath = rootpath+s
+        im = Image.open(impath)
+        im_arr = np.array(im)
+        im_max = np.max(im_arr)
+        im_min = np.min(im_arr)
+        im_arr_re = (im_arr - im_min)/(im_max-im_min)
+        '''
+        r,g,b = im.split()
+        r_arr = np.array(r)
+        g_arr = np.array(g)
+        b_arr = np.array(b)
+        r_max = np.max(r_arr)
+        r_min = np.min(r_arr)
+        r_arr_re = (r_arr - r_min)/(r_max-r_min)
+        g_max = np.max(g_arr)
+        g_min = np.min(g_arr)
+        g_arr_re = (g_arr - g_min)/(g_max-g_min)
+        b_max = np.max(b_arr)
+        b_min = np.min(b_arr)
+        b_arr_re = (b_arr - b_min)/(b_max-b_min)
+        '''
+        '''
+        r_arr_re = r_arr_re.flatten()
+        g_arr_re = g_arr_re.flatten()
+        b_arr_re = b_arr_re.flatten()
+        '''
+        '''
+        r_arr_re = r_arr.flatten()
+        g_arr_re = g_arr.flatten()
+        b_arr_re = b_arr.flatten()
+        '''
+        #im_arr = np.concatenate((r_arr_re,g_arr_re,b_arr_re))
+        im_arr_re = im_arr_re.flatten()
+        imdata[k] = im_arr_re
+        value = result.get(s)
+        #print(s+"=="+value)
+        if(value == "YOUNG"):
+            imlab[k] = dict[0]
+        elif(value == "MIDDLE"):
+            imlab[k] = dict[1]
+        elif(value == "OLD"):
+            imlab[k] = dict[2]
+        k = k+1 
+    return imdata,imlab
+
+def get_test_batch():
+    lens = len(testnumber)
+    imdata = np.zeros((lens, filesize), dtype=np.float64)
+    imlab = np.zeros((lens, 3), dtype=np.float64)
+    k = 0
+    global mid
+    global youn
+    global old
+    for s in testnumber:
+        impath = rootpath+s
+        im = Image.open(impath) 
+        im_arr = np.array(im)
+        im_max = np.max(im_arr)
+        im_min = np.min(im_arr)
+        im_arr_re = (im_arr - im_min)/(im_max-im_min)
+        '''
+        r,g,b = im.split()
+        r_arr = np.array(r)
+        g_arr = np.array(g)
+        b_arr = np.array(b)
+        r_max = np.max(r_arr)
+        r_min = np.min(r_arr)
+        r_arr_re = (r_arr - r_min)/(r_max-r_min)
+        g_max = np.max(g_arr)
+        g_min = np.min(g_arr)
+        g_arr_re = (g_arr - g_min)/(g_max-g_min)
+        b_max = np.max(b_arr)
+        b_min = np.min(b_arr)
+        b_arr_re = (b_arr - b_min)/(b_max-b_min)
+        '''
+        '''
+        r_arr_re = r_arr_re.flatten()
+        g_arr_re = g_arr_re.flatten()
+        b_arr_re = b_arr_re.flatten()
+        '''
+        '''
+        r_arr_re = r_arr.flatten()
+        g_arr_re = g_arr.flatten()
+        b_arr_re = b_arr.flatten()
+        '''
+        #im_arr = np.concatenate((r_arr_re,g_arr_re,b_arr_re))
+        im_arr_re = im_arr_re.flatten()
+        imdata[k] = im_arr_re
+        value = result.get(s)
+        if(value == "YOUNG"):
+            imlab[k] = dict[0]
+            youn = youn +1
+        elif(value == "MIDDLE"):
+            imlab[k] = dict[1]
+            mid = mid +1
+        elif(value == "OLD"):
+            imlab[k] = dict[2]
+            old = old+1
+        k = k+1 
+    
+    return imdata,imlab
+
+    
+    
+sess=tf.InteractiveSession()
+x = tf.placeholder("float", shape=[None, filesize])
+y_ = tf.placeholder("float", shape=[None, 3])
+
+length = 100
+for layer in range(1):
+    if(layer == 0):
+        y = add_layer(x,filesize,length,activation_function = tf.nn.relu,bn = 1)
+    else:
+        y = add_layer(y,length,length,activation_function = tf.nn.relu,bn = 1)
+y = add_layer(y,length,3,activation_function = tf.nn.softmax,bn = 1)
+
+cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ *tf.log(y), reduction_indices=[1]))
+regularizer = tf.contrib.layers.l2_regularizer(REGULARAZTION_RATE, scope=None)
+regulazation = tf.contrib.layers.apply_regularization(regularizer, tf.trainable_variables())
+#cross_entropy = cross_entropy + regulazation
+train_step = tf.train.GradientDescentOptimizer(0.05).minimize(cross_entropy)
+init = tf.initialize_all_variables()
+#init = tf.global_variables_initializer()
+sess.run(init)
+testbatch = get_test_batch()
+correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1))
+accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))  
+for i in range(200000):
+    batch = get_train_batch()
+    #print(batch)
+    train_step.run(feed_dict={x: batch[0], y_: batch[1]})
+    if(i%500==0):
+        print(i)
+        print(sess.run(accuracy, feed_dict={x: testbatch[0], y_: testbatch[1]}))     
+print("finish train")
+
+
+#print(testnumber)
+#print(testbatch[0])
+#print(youn)
+#print(mid)
+#print(old)
+#print(sess.run(y,feed_dict={x:testbatch[0]}))
+print(sess.run(accuracy, feed_dict={x: testbatch[0], y_: testbatch[1]}))           
+
+sess.close()
