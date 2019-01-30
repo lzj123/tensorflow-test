@@ -1,0 +1,162 @@
+# -*- coding: utf-8 -*-
+"""
+Spyder Editor
+
+This is a temporary script file.
+"""
+
+import tensorflow as tf
+import os
+import numpy as np
+import input_data
+import struct
+mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
+
+def add_layer(inputs,in_size,out_size,activation_function=None,bn = 0,add_part = None):
+    w = tf.Variable(tf.random_normal([in_size,out_size],stddev = 0.01))
+    b = tf.Variable(tf.random_normal([1,out_size]))
+    
+    if(bn == 1):
+        f = tf.matmul(inputs,w)# + b
+        if add_part is not None:
+            f = f + add_part
+            print("aaa")
+        mean, var = tf.nn.moments(f,[0])
+        scale = tf.Variable(tf.ones([out_size]))
+        beta = tf.Variable(tf.zeros([out_size]))
+        epsilon = 0.001
+        f = tf.nn.batch_normalization(f,mean,var,beta,scale,epsilon)
+    elif(bn == 0):
+        f = tf.matmul(inputs,w) + b
+        if add_part is not None:
+            f = f + add_part
+    if activation_function is None:
+        outputs = f
+    else:
+        outputs = activation_function(f)  
+    return outputs
+
+kind = 'train'
+kind2 = 't10k'
+
+
+labels_path = 'D:\deepl\\fashion\\train-labels-idx1-ubyte'
+images_path = 'D:\deepl\\fashion\\train-images-idx3-ubyte'
+test_labels_path = 'D:\deepl\\fashion\\t10k-labels-idx1-ubyte'
+test_images_path = 'D:\deepl\\fashion\\t10k-images-idx3-ubyte'
+
+with open(labels_path, 'rb') as lbpath:
+        magic, n = struct.unpack('>II',
+                                 lbpath.read(8))
+        labels = np.fromfile(lbpath,
+                             dtype=np.uint8)
+
+with open(images_path, 'rb') as imgpath:
+        magic, num, rows, cols = struct.unpack('>IIII',
+                                               imgpath.read(16))
+        images = np.fromfile(imgpath,
+                             dtype=np.uint8).reshape(len(labels), 784)
+with open(test_labels_path, 'rb') as lbpath:
+        magic, n = struct.unpack('>II',
+                                 lbpath.read(8))
+        test_labels = np.fromfile(lbpath,
+                             dtype=np.uint8)
+
+with open(test_images_path, 'rb') as imgpath:
+        magic, num, rows, cols = struct.unpack('>IIII',
+                                               imgpath.read(16))
+        test_images = np.fromfile(imgpath,
+                             dtype=np.uint8).reshape(len(test_labels), 784)
+        
+'''
+print(len(images[1]))
+print(len(labels))
+print(len(test_labels))
+print(len(images))
+print(len(test_images))
+print(len(test_images[1]))   
+'''
+sess=tf.InteractiveSession()
+x = tf.placeholder("float", shape=[None, 784])
+y_ = tf.placeholder("float", shape=[None, 10])
+dict = {0:[1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],1:[0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],2:[0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]}
+dict[3] = [0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0]
+dict[4] = [0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0]
+dict[5] = [0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0]
+dict[6] = [0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0]
+dict[7] = [0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0]
+dict[8] = [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0]
+dict[9] = [0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0]
+#print(dict)
+map1 = np.zeros((60000, 10), dtype=np.int)
+#print(map)
+k = 0;
+for i in labels:
+    map1[k] = dict[i]
+    k=k+1
+#print(map)
+map2 = np.zeros((10000, 10), dtype=np.int)
+#print(map)
+k2 = 0;
+for i2 in test_labels:
+    map2[k2] = dict[i2]
+    k2=k2+1
+
+#print(map1[0])
+length = 100
+for layer in range(30):
+    if(layer == 0):
+        y = add_layer(x,784,length,activation_function = tf.nn.relu,bn = 1,add_part = None)
+    else:
+        y = add_layer(y,length,length,activation_function = tf.nn.relu,bn = 1,add_part = None)
+y = add_layer(y,length,10,activation_function = tf.nn.softmax,bn = 1)
+#y = add_layer(x,784,10,activation_function = tf.nn.softmax)
+#l1 = add_layer(x,784,100,activation_function = tf.nn.sigmoid)
+#l2 = add_layer(l1,100,100,activation_function = tf.nn.sigmoid)
+#l3 = add_layer(l2,100,100,activation_function = tf.nn.sigmoid)
+#l4 = add_layer(l3,100,100,activation_function = tf.nn.sigmoid)
+#y = add_layer(l1,100,10,activation_function = tf.nn.softmax)
+#y = add_layer(l1,100,10,activation_function = tf.nn.softmax)
+#w = tf.Variable(tf.zeros([784,10]))
+#b = tf.Variable(tf.zeros([1,10]))
+#y = tf.nn.softmax(tf.matmul(x,w) + b)
+#y = tf.matmul(x,w) + b
+#w1 = tf.Variable(tf.zeros([20,10]))
+#b1 = tf.Variable(tf.zeros([1,10]))
+#y = tf.nn.softmax(tf.matmul(y1,w1)+b1)
+cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ *tf.log(tf.clip_by_value(y,1e-8,1.0)), reduction_indices=[1]))
+#cross_entropy = -tf.reduce_sum(y_*tf.log(y))
+train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)
+init = tf.initialize_all_variables()
+correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1))
+accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
+sess.run(init)
+for i in range(200000):
+    #batch_image = images[i*60:i*60+60,:]
+    #batch_label = map1[i*60:i*60+60,:]
+    #print(batch_image)
+    #print(batch_label)
+    #train_step.run(feed_dict={x:batch_image, y_: batch_label})
+    batch = mnist.train.next_batch(100)
+    #print(batch[0])
+    train_step.run(feed_dict={x: batch[0], y_: batch[1]})
+    if(i%500 == 0):
+        print(i)
+        print(sess.run(accuracy, feed_dict={x: mnist.test.images, y_: mnist.test.labels}))
+        #print(sess.run(y,feed_dict={x: mnist.test.images, y_: mnist.test.labels}))
+
+#sess.run(train_step, feed_dict={x:images, y_: map1})
+#print(sess.run(y, feed_dict={x:images, y_: map1})) 
+
+#print(cross_entropy)
+#for to in range(1):
+    #print(mnist.test.images[to])
+    #print(test_images[to])
+print("finish train")
+print(sess.run(accuracy, feed_dict={x: mnist.test.images, y_: mnist.test.labels}))
+#print(sess.run(accuracy, feed_dict={x: test_images, y_: map2}))
+#l6 = add_layer(l5,10,10,activation_function = tf.nn.softmax)
+#result=sess.run(greeting)
+#print(result)
+sess.close()
+
